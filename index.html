@@ -24,7 +24,6 @@
             -moz-appearance: none;
             appearance: none;
         }
-        /* Simple loader animation */
         .loader {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #3b82f6;
@@ -47,11 +46,16 @@
         <!-- Header and Version Selector -->
         <header class="bg-white rounded-xl shadow-md p-6 mb-8">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                <div>
-                    <h1 id="resume-name" class="text-3xl md:text-4xl font-bold text-gray-900"></h1>
-                    <p id="resume-title" class="text-lg md:text-xl text-indigo-600 font-medium mt-1"></p>
+                <!-- NEW: Flex container for image and text -->
+                <div class="flex items-center space-x-4">
+                    <!-- NEW: Image tag for the profile picture -->
+                    <img id="resume-image" src="" alt="Profile Picture" class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-indigo-100 object-cover shadow-sm">
+                    <div>
+                        <h1 id="resume-name" class="text-3xl md:text-4xl font-bold text-gray-900"></h1>
+                        <p id="resume-title" class="text-lg md:text-xl text-indigo-600 font-medium mt-1"></p>
+                    </div>
                 </div>
-                <div class="mt-4 sm:mt-0 w-full sm:w-auto">
+                <div class="mt-4 sm:mt-0 w-full sm:w-auto self-center sm:self-end">
                     <label for="version-selector" class="block text-sm font-medium text-gray-600 mb-1">Select Resume Version:</label>
                     <select id="version-selector" class="custom-select w-full sm:w-64 p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
                         <!-- Options will be populated by JavaScript -->
@@ -60,9 +64,8 @@
             </div>
         </header>
 
-        <!-- Main content area where the selected resume will be displayed -->
+        <!-- Main content area -->
         <main id="resume-content" class="bg-white rounded-xl shadow-md p-6 md:p-8 min-h-[300px]">
-            <!-- Initially show a loader -->
             <div class="loader-container text-center">
                 <div class="loader"></div>
                 <p class="text-gray-500">Loading resume data...</p>
@@ -76,59 +79,31 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- IMPORTANT ---
-            // This script now fetches data from external files.
-            // This will only work when you run it from a web server (even a simple local one).
-            // It will NOT work if you just open the index.html file directly from your computer (e.g., file://...).
-
-            /**
-             * Fetches the list of resume files, then fetches the content of each file.
-             */
+            
             async function loadResumes() {
                 const resumeContentEl = document.getElementById('resume-content');
                 try {
-                    // 1. Fetch the list of resume version files.
-                    // This file acts as a directory of all your resumes.
                     const response = await fetch('data/versions.json');
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     const versions = await response.json();
-
-                    // 2. Fetch the actual data for each resume file listed in versions.json
-                    // We use Promise.all to fetch all files concurrently.
                     const resumePromises = versions.map(v => fetch(v.url).then(res => res.json()));
                     const resumeDataSet = await Promise.all(resumePromises);
-
-                    // 3. Once all data is loaded, initialize the application.
                     initializeApp(resumeDataSet);
-
                 } catch (error) {
                     console.error("Failed to load resume data:", error);
-                    resumeContentEl.innerHTML = `
-                        <div class="text-center text-red-600">
-                            <h2 class="text-xl font-bold mb-2">Error Loading Data</h2>
-                            <p>Could not load resume data from the server.</p>
-                            <p class="text-sm text-gray-500 mt-2">Please ensure you are running this page from a web server and that the 'data/versions.json' file exists and is correctly formatted.</p>
-                        </div>`;
+                    resumeContentEl.innerHTML = `<div class="text-center text-red-600"><h2 class="text-xl font-bold mb-2">Error Loading Data</h2><p>Could not load resume data from the server.</p><p class="text-sm text-gray-500 mt-2">Please ensure you are running this page from a web server and that the 'data/versions.json' file exists.</p></div>`;
                 }
             }
 
-            /**
-             * Initializes the page with the fetched resume data.
-             * @param {Array} resumeDataSet - The array of resume objects.
-             */
             function initializeApp(resumeDataSet) {
                 const versionSelector = document.getElementById('version-selector');
                 const resumeNameEl = document.getElementById('resume-name');
                 const resumeTitleEl = document.getElementById('resume-title');
+                // NEW: Get the image element
+                const resumeImageEl = document.getElementById('resume-image');
 
-                // Clear the loader
-                document.getElementById('resume-content').innerHTML = '';
+                document.getElementById('resume-content').innerHTML = ''; // Clear loader
 
-                /**
-                 * Populates the version selector dropdown.
-                 */
                 function populateSelector() {
                     const reversedData = [...resumeDataSet].reverse();
                     reversedData.forEach((resume, index) => {
@@ -139,16 +114,21 @@
                     });
                 }
 
-                /**
-                 * Renders the selected resume into the main content area.
-                 * @param {number} index - The index of the resume in the resumeDataSet array.
-                 */
                 function displayResume(index) {
                     const resume = resumeDataSet[index];
                     if (!resume) return;
 
+                    // Update header text and image
                     resumeNameEl.textContent = resume.name;
                     resumeTitleEl.textContent = resume.title;
+                    
+                    // NEW: Set the image source from the data
+                    if (resume.profileImage) {
+                        resumeImageEl.src = resume.profileImage;
+                        resumeImageEl.style.display = 'block'; // Make sure it's visible
+                    } else {
+                        resumeImageEl.style.display = 'none'; // Hide if no image is provided
+                    }
 
                     const createListItems = (items) => items.map(item => `<li class="mb-1">${item}</li>`).join('');
                     const createSkillTags = (skills) => skills.map(skill => `<span class="bg-indigo-100 text-indigo-800 text-sm font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${skill}</span>`).join('');
@@ -198,10 +178,9 @@
 
                 populateSelector();
                 versionSelector.addEventListener('change', (e) => displayResume(e.target.value));
-                displayResume(resumeDataSet.length - 1); // Display latest by default
+                displayResume(resumeDataSet.length - 1);
             }
 
-            // Start the process
             loadResumes();
         });
     </script>
