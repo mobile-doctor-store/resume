@@ -14,11 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Use the Inter font family */
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Style for the select dropdown arrow */
+        body { font-family: 'Inter', sans-serif; }
         .custom-select {
             background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
             background-position: right 0.5rem center;
@@ -27,6 +23,20 @@
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
+        }
+        /* Simple loader animation */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -51,8 +61,12 @@
         </header>
 
         <!-- Main content area where the selected resume will be displayed -->
-        <main id="resume-content" class="bg-white rounded-xl shadow-md p-6 md:p-8">
-            <!-- Resume content will be injected here by JavaScript -->
+        <main id="resume-content" class="bg-white rounded-xl shadow-md p-6 md:p-8 min-h-[300px]">
+            <!-- Initially show a loader -->
+            <div class="loader-container text-center">
+                <div class="loader"></div>
+                <p class="text-gray-500">Loading resume data...</p>
+            </div>
         </main>
 
         <footer class="text-center text-gray-500 mt-8 text-sm">
@@ -62,205 +76,133 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- DATASET ---
-            // In a real-world application, you would fetch this data from your backend.
-            // For example, you might first fetch a 'versions.json' file that lists all
-            // available resume files, then fetch the specific resume file.
-            // To simulate this, we'll define the data directly here.
+            // --- IMPORTANT ---
+            // This script now fetches data from external files.
+            // This will only work when you run it from a web server (even a simple local one).
+            // It will NOT work if you just open the index.html file directly from your computer (e.g., file://...).
 
-            const resumeDataSet = [
-                // Version 1: Represents an older resume
-                {
-                    versionId: "v1.0",
-                    versionLabel: "Version 1.0 (Junior Developer)",
-                    name: "Alex Doe",
-                    title: "Junior Web Developer",
-                    contact: {
-                        email: "alex.doe.v1@example.com",
-                        phone: "111-222-3333",
-                        linkedin: "linkedin.com/in/alexdoev1",
-                        github: "github.com/alexdoev1"
-                    },
-                    summary: "Eager and motivated computer science graduate seeking a role as a Junior Web Developer. Proficient in HTML, CSS, and JavaScript, with a foundational understanding of front-end frameworks.",
-                    experience: [
-                        {
-                            role: "Web Development Intern",
-                            company: "Innovate Startups Inc.",
-                            dates: "June 2022 - August 2022",
-                            duties: [
-                                "Assisted in the development of a client-facing marketing website.",
-                                "Translated Figma designs into responsive HTML and CSS code.",
-                                "Participated in daily stand-ups and code reviews."
-                            ]
-                        }
-                    ],
-                    education: [
-                        {
-                            degree: "Bachelor of Science in Computer Science",
-                            school: "State University",
-                            year: "2018 - 2022"
-                        }
-                    ],
-                    skills: ["HTML5", "CSS3", "JavaScript (ES6+)", "Git", "Figma", "Responsive Design"]
-                },
-                // Version 2: Represents the latest, updated resume
-                {
-                    versionId: "v2.0",
-                    versionLabel: "Version 2.0 (Full-Stack Developer)",
-                    name: "Alex Doe",
-                    title: "Full-Stack Developer",
-                    contact: {
-                        email: "alex.doe@example.com",
-                        phone: "123-456-7890",
-                        linkedin: "linkedin.com/in/alexdoe",
-                        github: "github.com/alexdoe"
-                    },
-                    summary: "Results-driven Full-Stack Developer with 2+ years of experience in building and maintaining scalable web applications. Expertise in the MERN stack (MongoDB, Express, React, Node.js) and a passion for creating seamless user experiences.",
-                    experience: [
-                        {
-                            role: "Software Developer",
-                            company: "Tech Solutions LLC",
-                            dates: "September 2022 - Present",
-                            duties: [
-                                "Develop and maintain full-stack features for a SaaS platform using React, Node.js, and MongoDB.",
-                                "Collaborated with a team of 5 developers to implement a new RESTful API, improving data retrieval times by 30%.",
-                                "Wrote unit and integration tests using Jest and React Testing Library to ensure code quality."
-                            ]
-                        },
-                        {
-                            role: "Web Development Intern",
-                            company: "Innovate Startups Inc.",
-                            dates: "June 2022 - August 2022",
-                            duties: [
-                                "Assisted in the development of a client-facing marketing website.",
-                                "Translated Figma designs into responsive HTML and CSS code.",
-                            ]
-                        }
-                    ],
-                    education: [
-                        {
-                            degree: "Bachelor of Science in Computer Science",
-                            school: "State University",
-                            year: "2018 - 2022"
-                        }
-                    ],
-                    skills: ["JavaScript (ES6+)", "React.js", "Node.js", "Express.js", "MongoDB", "RESTful APIs", "GraphQL", "Docker", "Git", "CI/CD"]
+            /**
+             * Fetches the list of resume files, then fetches the content of each file.
+             */
+            async function loadResumes() {
+                const resumeContentEl = document.getElementById('resume-content');
+                try {
+                    // 1. Fetch the list of resume version files.
+                    // This file acts as a directory of all your resumes.
+                    const response = await fetch('data/versions.json');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const versions = await response.json();
+
+                    // 2. Fetch the actual data for each resume file listed in versions.json
+                    // We use Promise.all to fetch all files concurrently.
+                    const resumePromises = versions.map(v => fetch(v.url).then(res => res.json()));
+                    const resumeDataSet = await Promise.all(resumePromises);
+
+                    // 3. Once all data is loaded, initialize the application.
+                    initializeApp(resumeDataSet);
+
+                } catch (error) {
+                    console.error("Failed to load resume data:", error);
+                    resumeContentEl.innerHTML = `
+                        <div class="text-center text-red-600">
+                            <h2 class="text-xl font-bold mb-2">Error Loading Data</h2>
+                            <p>Could not load resume data from the server.</p>
+                            <p class="text-sm text-gray-500 mt-2">Please ensure you are running this page from a web server and that the 'data/versions.json' file exists and is correctly formatted.</p>
+                        </div>`;
                 }
-            ];
-
-            // --- DOM ELEMENTS ---
-            const versionSelector = document.getElementById('version-selector');
-            const resumeContent = document.getElementById('resume-content');
-            const resumeNameEl = document.getElementById('resume-name');
-            const resumeTitleEl = document.getElementById('resume-title');
-
-            // --- FUNCTIONS ---
-
-            /**
-             * Populates the version selector dropdown with options from the dataset.
-             */
-            function populateSelector() {
-                // Reverse the dataset to show the newest versions first in the dropdown
-                const reversedData = [...resumeDataSet].reverse();
-                reversedData.forEach((resume, index) => {
-                    const option = document.createElement('option');
-                    // The value will be the original index from the un-reversed array
-                    option.value = resumeDataSet.length - 1 - index;
-                    option.textContent = resume.versionLabel;
-                    versionSelector.appendChild(option);
-                });
             }
 
             /**
-             * Renders the selected resume into the main content area.
-             * @param {number} index - The index of the resume in the resumeDataSet array.
+             * Initializes the page with the fetched resume data.
+             * @param {Array} resumeDataSet - The array of resume objects.
              */
-            function displayResume(index) {
-                const resume = resumeDataSet[index];
-                if (!resume) return;
+            function initializeApp(resumeDataSet) {
+                const versionSelector = document.getElementById('version-selector');
+                const resumeNameEl = document.getElementById('resume-name');
+                const resumeTitleEl = document.getElementById('resume-title');
 
-                // Update header
-                resumeNameEl.textContent = resume.name;
-                resumeTitleEl.textContent = resume.title;
+                // Clear the loader
+                document.getElementById('resume-content').innerHTML = '';
 
-                // --- Generate HTML for the resume content ---
-                // Using template literals for cleaner HTML string construction.
-                
-                // Helper function to generate list items
-                const createListItems = (items) => items.map(item => `<li class="mb-1">${item}</li>`).join('');
-                
-                // Helper function to generate skill tags
-                const createSkillTags = (skills) => skills.map(skill => `<span class="bg-indigo-100 text-indigo-800 text-sm font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${skill}</span>`).join('');
+                /**
+                 * Populates the version selector dropdown.
+                 */
+                function populateSelector() {
+                    const reversedData = [...resumeDataSet].reverse();
+                    reversedData.forEach((resume, index) => {
+                        const option = document.createElement('option');
+                        option.value = resumeDataSet.length - 1 - index;
+                        option.textContent = resume.versionLabel;
+                        versionSelector.appendChild(option);
+                    });
+                }
 
-                resumeContent.innerHTML = `
-                    <!-- Contact Section -->
-                    <div class="mb-8 pb-6 border-b border-gray-200">
-                        <h2 class="text-xl font-bold text-gray-800 mb-4">Contact Information</h2>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-600">
-                            <p><strong>Email:</strong> <a href="mailto:${resume.contact.email}" class="text-indigo-600 hover:underline">${resume.contact.email}</a></p>
-                            <p><strong>Phone:</strong> ${resume.contact.phone}</p>
-                            <p><strong>LinkedIn:</strong> <a href="https://www.${resume.contact.linkedin}" target="_blank" class="text-indigo-600 hover:underline">${resume.contact.linkedin}</a></p>
-                            <p><strong>GitHub:</strong> <a href="https://www.${resume.contact.github}" target="_blank" class="text-indigo-600 hover:underline">${resume.contact.github}</a></p>
+                /**
+                 * Renders the selected resume into the main content area.
+                 * @param {number} index - The index of the resume in the resumeDataSet array.
+                 */
+                function displayResume(index) {
+                    const resume = resumeDataSet[index];
+                    if (!resume) return;
+
+                    resumeNameEl.textContent = resume.name;
+                    resumeTitleEl.textContent = resume.title;
+
+                    const createListItems = (items) => items.map(item => `<li class="mb-1">${item}</li>`).join('');
+                    const createSkillTags = (skills) => skills.map(skill => `<span class="bg-indigo-100 text-indigo-800 text-sm font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${skill}</span>`).join('');
+
+                    document.getElementById('resume-content').innerHTML = `
+                        <div class="mb-8 pb-6 border-b border-gray-200">
+                            <h2 class="text-xl font-bold text-gray-800 mb-4">Contact Information</h2>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-600">
+                                <p><strong>Email:</strong> <a href="mailto:${resume.contact.email}" class="text-indigo-600 hover:underline">${resume.contact.email}</a></p>
+                                <p><strong>Phone:</strong> ${resume.contact.phone}</p>
+                                <p><strong>LinkedIn:</strong> <a href="https://www.${resume.contact.linkedin}" target="_blank" class="text-indigo-600 hover:underline">${resume.contact.linkedin}</a></p>
+                                <p><strong>GitHub:</strong> <a href="https://www.${resume.contact.github}" target="_blank" class="text-indigo-600 hover:underline">${resume.contact.github}</a></p>
+                            </div>
                         </div>
-                    </div>
-
-                    <!-- Summary Section -->
-                    <div class="mb-8 pb-6 border-b border-gray-200">
-                        <h2 class="text-xl font-bold text-gray-800 mb-4">Summary</h2>
-                        <p class="text-gray-600 leading-relaxed">${resume.summary}</p>
-                    </div>
-
-                    <!-- Experience Section -->
-                    <div class="mb-8 pb-6 border-b border-gray-200">
-                        <h2 class="text-xl font-bold text-gray-800 mb-4">Work Experience</h2>
-                        ${resume.experience.map(job => `
-                            <div class="mb-6">
-                                <div class="flex justify-between items-baseline">
-                                    <h3 class="text-lg font-semibold text-gray-900">${job.role}</h3>
-                                    <p class="text-sm text-gray-500 font-medium">${job.dates}</p>
+                        <div class="mb-8 pb-6 border-b border-gray-200">
+                            <h2 class="text-xl font-bold text-gray-800 mb-4">Summary</h2>
+                            <p class="text-gray-600 leading-relaxed">${resume.summary}</p>
+                        </div>
+                        <div class="mb-8 pb-6 border-b border-gray-200">
+                            <h2 class="text-xl font-bold text-gray-800 mb-4">Work Experience</h2>
+                            ${resume.experience.map(job => `
+                                <div class="mb-6">
+                                    <div class="flex justify-between items-baseline">
+                                        <h3 class="text-lg font-semibold text-gray-900">${job.role}</h3>
+                                        <p class="text-sm text-gray-500 font-medium">${job.dates}</p>
+                                    </div>
+                                    <p class="text-md text-gray-600 font-medium italic">${job.company}</p>
+                                    <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">${createListItems(job.duties)}</ul>
                                 </div>
-                                <p class="text-md text-gray-600 font-medium italic">${job.company}</p>
-                                <ul class="list-disc list-inside mt-2 text-gray-600 space-y-1">
-                                    ${createListItems(job.duties)}
-                                </ul>
-                            </div>
-                        `).join('')}
-                    </div>
-                    
-                    <!-- Education Section -->
-                    <div class="mb-8 pb-6 border-b border-gray-200">
-                        <h2 class="text-xl font-bold text-gray-800 mb-4">Education</h2>
-                        ${resume.education.map(edu => `
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-900">${edu.degree}</h3>
-                                <p class="text-md text-gray-600">${edu.school} - ${edu.year}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-
-                    <!-- Skills Section -->
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-800 mb-4">Skills</h2>
-                        <div class="flex flex-wrap">
-                            ${createSkillTags(resume.skills)}
+                            `).join('')}
                         </div>
-                    </div>
-                `;
+                        <div class="mb-8 pb-6 border-b border-gray-200">
+                            <h2 class="text-xl font-bold text-gray-800 mb-4">Education</h2>
+                            ${resume.education.map(edu => `
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900">${edu.degree}</h3>
+                                    <p class="text-md text-gray-600">${edu.school} - ${edu.year}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800 mb-4">Skills</h2>
+                            <div class="flex flex-wrap">${createSkillTags(resume.skills)}</div>
+                        </div>
+                    `;
+                }
+
+                populateSelector();
+                versionSelector.addEventListener('change', (e) => displayResume(e.target.value));
+                displayResume(resumeDataSet.length - 1); // Display latest by default
             }
 
-            // --- INITIALIZATION ---
-
-            // 1. Populate the dropdown menu
-            populateSelector();
-
-            // 2. Add event listener to update the resume when a new version is selected
-            versionSelector.addEventListener('change', (event) => {
-                displayResume(event.target.value);
-            });
-
-            // 3. Display the latest resume by default on page load
-            // The latest is the last one in the original array.
-            displayResume(resumeDataSet.length - 1);
+            // Start the process
+            loadResumes();
         });
     </script>
 
