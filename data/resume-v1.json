@@ -1,0 +1,17 @@
+{
+    "versionId": "v1.0",
+    "versionLabel": "Version 1.0 (Junior Developer)",
+    "profileImage": "https://placehold.co/128x128/e0e7ff/4f46e5?text=AD",
+    "name": "Alex Doe",
+    "title": "Junior Web Developer",
+    "contact": {
+        "email": "alex.doe.v1@example.com",
+        "phone": "111-222-3333",
+        "linkedin": "linkedin.com/in/alexdoev1",
+        "github": "github.com/alexdoev1"
+    },
+    "summary": "...",
+    "experience": [ ... ],
+    "education": [ ... ],
+    "skills": [ ... ]
+}

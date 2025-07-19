@@ -1,0 +1,41 @@
+ "versionId": "v2.0",
+    "versionLabel": "Version 2.0 (Full-Stack Developer)",
+    "name": "Alex Doe",
+    "title": "Full-Stack Developer",
+    "contact": {
+        "email": "alex.doe@example.com",
+        "phone": "123-456-7890",
+        "linkedin": "linkedin.com/in/alexdoe",
+        "github": "github.com/alexdoe"
+    },
+    "summary": "Results-driven Full-Stack Developer with 2+ years of experience in building and maintaining scalable web applications. Expertise in the MERN stack (MongoDB, Express, React, Node.js) and a passion for creating seamless user experiences.",
+    "experience": [
+        {
+            "role": "Software Developer",
+            "company": "Tech Solutions LLC",
+            "dates": "September 2022 - Present",
+            "duties": [
+                "Develop and maintain full-stack features for a SaaS platform using React, Node.js, and MongoDB.",
+                "Collaborated with a team of 5 developers to implement a new RESTful API, improving data retrieval times by 30%.",
+                "Wrote unit and integration tests using Jest and React Testing Library to ensure code quality."
+            ]
+        },
+        {
+            "role": "Web Development Intern",
+            "company": "Innovate Startups Inc.",
+            "dates": "June 2022 - August 2022",
+            "duties": [
+                "Assisted in the development of a client-facing marketing website.",
+                "Translated Figma designs into responsive HTML and CSS code."
+            ]
+        }
+    ],
+    "education": [
+        {
+            "degree": "Bachelor of Science in Computer Science",
+            "school": "State University",
+            "year": "2018 - 2022"
+        }
+    ],
+    "skills": ["JavaScript (ES6+)", "React.js", "Node.js", "Express.js", "MongoDB", "RESTful APIs", "GraphQL", "Docker", "Git", "CI/CD"]
+}
